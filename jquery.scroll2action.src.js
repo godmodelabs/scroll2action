@@ -279,5 +279,3 @@
 		});
 	};
 })(jQuery);
-
-$(function() { $('.box, .smallbox').pullToShow(); });
