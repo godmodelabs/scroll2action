@@ -11,7 +11,7 @@
 			f: {
 				init: false,
 				locked: false,
-				disableSnapping: true,
+				disableSnapping: false,
 				mouseScrollActive: false,
 				mouseEntered: false
 			},
