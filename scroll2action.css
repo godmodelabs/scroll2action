@@ -1,4 +1,4 @@
-.pullToShow_content {
+.s2a_content {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -20,15 +20,9 @@
 		 -o-user-select: none;
 			user-select: none;
 }
-.pullToShow_content.scroll_top {
-	background: lightgreen;
-	top: 100px !important;
-}
-.pullToShow_content.scroll_bottom {
-	background: lightblue;
-	top: -100px;
-}
-.pullToShow_scroll {
+.s2a_content.s2a_top { top: 100px !important; }
+.s2a_content.s2a_bottom { top: -100px; }
+.s2a_scroll {
 	position: absolute;
 	top: 0px;
 	right: 0px;
@@ -47,14 +41,14 @@
 		 -o-transition: right 0.15s ease;
 			transition: right 0.15s ease;
 }
-.pullToShow_scroll.hover {
+.s2a_scroll.hover {
 	opacity: 1;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
 }
-.pullToShow_scroll.hidden {
+.s2a_scroll.hidden {
 	right: -3px;
 }
-.pullToShow_handler {
+.s2a_handler {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -78,11 +72,11 @@
 			transition: height 0.5s ease;
 }
 
-.pullToShow_viewTop {
+.s2a_view {
 	position: absolute;
-	height: 100px;
-	top: -100px;
 	left: 0;
+	height: 100px;
+	overflow: hidden;
 	background: red;
 
 	-webkit-transition: all 0.5s ease;
@@ -92,24 +86,9 @@
 		 -o-transition: all 0.5s ease;
 			transition: all 0.5s ease;
 }
-.pullToShow_viewTop.scroll_top {
-	top: 0;
-}
 
-.pullToShow_viewBottom {
-	position: absolute;
-	height: 100px;
-	bottom: -100px;
-	left: 0;
-	background: red;
+.s2a_viewTop { top: -100px; }
+.s2a_viewTop.s2a_top { top: 0; }
 
-	-webkit-transition: all 0.5s ease;
-	 -khtml-transition: all 0.5s ease;
-	   -moz-transition: all 0.5s ease;
-		-ms-transition: all 0.5s ease;
-		 -o-transition: all 0.5s ease;
-			transition: all 0.5s ease;
-}
-.pullToShow_viewBottom.scroll_bottom {
-	bottom: 0;
-}
+.s2a_viewBottom { bottom: -100px; }
+.s2a_viewBottom.s2a_bottom { bottom: 0; }

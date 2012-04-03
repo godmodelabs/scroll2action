@@ -5,16 +5,21 @@
 	var animationTimeout = null;
 	var bottomScrollInterval = [];
 
-	$.fn.pullToShow = function() {
+	$.fn.scroll2action = function() {
 
 		var p = {
 			f: {
 				init: false,
 				locked: false,
-				disableSnapping: false,
+				disableSnapping: true,
 				mouseScrollActive: false,
 				mouseEntered: false
 			},
+
+			elements: {},
+			elementCount: 0,
+			speed: null,
+
 			init: function() {
 				if (p.f.init) { return; }
 				p.f.init = true;
@@ -25,14 +30,29 @@
 				window.onmousewheel = document.onmousewheel = p.scrollHandler;
 			},
 			start: function(elem) {
-				p.elements.push(elem);
-				p.wrapContent(elem);
-				p.addScrollbar(elem);
-				p.addViews(elem);
-				p.addStyling(elem);
+				var id = "s2a_"+(++p.elementCount);
+				p.elements[id] = { parent: elem };
+				p.wrapContent(p.elements[id]);
+				p.addScrollbar(p.elements[id]);
+				p.addViews(p.elements[id]);
+				p.addStyling(p.elements[id]);
 				p.speed = p.getSpeed(p.getBrowser($.browser)) || 2;
+			},
+			wrapContent: function(elem) {
+				elem.content = $("<div class='s2a_content'></div>");
+				elem.parent.append(elem.content.append($("<div></div>").append($('> *', elem.parent))));
+			},
+			addScrollbar: function(elem) {
+				elem.scrollBar = $("<div class='s2a_scroll hidden'></div>");
+				elem.scrollBarHandler = $("<div class='s2a_handler' ></div>");
 
-				$('> .pullToShow_scroll', elem).hover(function() {
+				var
+				boxHeight = elem.parent.innerHeight(),
+				targetHeight = elem.content.innerHeight();
+
+				p.bindScrollbarHandler(elem.scrollBarHandler);
+
+				elem.scrollBar.hover(function() {
 					$(this).addClass("hover");
 				}, function() {
 					if (!p.f.mouseScrollActive) {
@@ -40,47 +60,20 @@
 					}
 				});
 
-				elem.hover(function() {
+				elem.parent.hover(function() {
 					p.f.mouseEntered = true;
-					$('> .pullToShow_scroll', elem).removeClass("hidden");
+					elem.scrollBar.removeClass("hidden");
 				}, function() {
 					p.f.mouseEntered = false;
 					if (!p.f.mouseScrollActive) {
-						$('> .pullToShow_scroll', elem).addClass("hidden");
+						elem.scrollBar.addClass("hidden");
 					}
 				});
-			},
-			addStyling: function(elem) {
-				elem.css("position", "relative")
-					.css("overflow", "hidden");
 
-				var height = elem.height();
-				var width = elem.width();
-				$(".pullToShow_content", elem).height(height);
-				$(".pullToShow_viewTop, .pullToShow_viewBottom", elem).width(width);
-			},
-			wrapContent: function(elem) {
-				var wrap1 = $("<div class='pullToShow_content'></div>");
-				var wrap2 = $("<div></div>");
-				elem.append(wrap1.append(wrap2.append($('> *', elem))));
-			},
-			addViews: function(elem) {
-				var top = $("<div class='pullToShow_viewTop'></div>");
-				var bottom = $("<div class='pullToShow_viewBottom'></div>");
-				elem.prepend(top).append(bottom);
-			},
-			addScrollbar: function(elem) {
-				var $sb = $("<div class='pullToShow_scroll hidden'></div>");
-				var $sbh = $("<div class='pullToShow_handler' ></div>");
-				var boxHeight = elem.innerHeight();
-				var targetHeight = $('.pullToShow_content > div', elem).innerHeight();
+				elem.scrollBar.height(boxHeight);
+				elem.scrollBarHandler.height(~~(boxHeight/targetHeight*boxHeight));
 
-				p.bindScrollbarHandler($sbh);
-
-				$sb.height(boxHeight);
-				$sbh.height(~~(boxHeight/targetHeight*boxHeight));
-
-				elem.append($sb.append($sbh));
+				elem.parent.append(elem.scrollBar.append(elem.scrollBarHandler));
 			},
 			bindScrollbarHandler: (function() {
 
@@ -93,14 +86,13 @@
 						lastTarget = p.findUp(this);
 						clickPos = e.pageY;
 						p.f.mouseScrollActive = true;
-						posTop = ~~$('.pullToShow_content', lastTarget).attr("data-pullToShow-pos");
+						posTop = ~~lastTarget.content.attr("data-s2a-pos");
 					});
 					$('body').mouseup(function() {
 						p.f.mouseScrollActive = false;
-						var scroll = $('.pullToShow_scroll', lastTarget);
-						scroll.removeClass("hover");
+						lastTarget.scrollBar.removeClass("hover");
 						if (!p.f.mouseEntered) {
-							scroll.addClass("hidden");
+							lastTarget.scrollBar.addClass("hidden");
 						}
 					});
 
@@ -110,11 +102,27 @@
 					});
 				}
 			})(),
-			elements: [],
+			addViews: function(elem) {
+				elem.viewTop = $("<div class='s2a_view s2a_viewTop'></div>");
+				elem.viewBottom = $("<div class='s2a_view s2a_viewBottom'></div>");
+				elem.parent.prepend(elem.viewTop).append(elem.viewBottom);
+			},
+			addStyling: function(elem) {
+				elem.parent
+					.css("position", "relative")
+					.css("overflow", "hidden");
+
+				var height = elem.parent.height();
+				var width = elem.parent.width();
+				elem.content.height(height);
+				elem.viewBottom.width(width);
+				elem.viewTop.width(width);
+			},
+
 			findUp: function(node) {
 				var found = false;
 				$.each(p.elements, function(key, value) {
-					if (value[0] === $(node)[0]) { found = value; }
+					if (value.parent[0] === $(node)[0]) { found = value; }
 				});
 				if (found) { return found; }
 
@@ -139,13 +147,13 @@
 				if (b.mozilla) { return "mozilla"; }
 				return false;
 			},
-			speed: null,
+
 			scrollHandler: function(e) {
 
 				if (!e) { e = window.event; } /* IE */
 				var target = p.findUp($.event.fix(e).target);
 
-				if (target !== false) {
+				if (!!target) {
 
 					var delta =
 						e.wheelDelta? e.wheelDelta : /* IE/Opera */
@@ -160,10 +168,8 @@
 			},
 			scrollTo: function(target, value, multiplyRatio) {
 				var
-				$content = $('> .pullToShow_content', target),
-				$scrollBarHandler = $('> .pullToShow_scroll .pullToShow_handler', target),
-				boxHeight = target.innerHeight(),
-				targetHeight = $('> .pullToShow_content > div', target).innerHeight();
+				boxHeight = target.parent.innerHeight(),
+				targetHeight = $(' > div', target.content).innerHeight();
 				targetHeight = targetHeight < boxHeight? boxHeight : targetHeight;
 				var
 				ratio = boxHeight/targetHeight,
@@ -173,11 +179,11 @@
 				var sbht = ~~(ratio*value);
 
 				// actual scrolling
-				$content.scrollTop(value);
-				$content.attr("data-pullToShow-pos", value*ratio);
+				target.content.scrollTop(value);
+				target.content.attr("data-s2a-pos", value*ratio);
 
 				// ScrollbarHandler positioning
-				$scrollBarHandler.css("top",
+				target.scrollBarHandler.css("top",
 						sbht+sbhHeight > boxHeight? boxHeight-sbhHeight-2 :
 						sbht < 0? 0 : sbht );
 			},
@@ -186,16 +192,12 @@
 
 				up = up > 0;
 				var
-				$content = $('> .pullToShow_content', target),
-				$scrollBarHandler = $('> .pullToShow_scroll .pullToShow_handler', target),
-				$viewTop = $('> .pullToShow_viewTop', target),
-				$viewBottom = $('> .pullToShow_viewBottom', target),
-				scrollTo = $content.scrollTop()+p.speed*-1*(up? 10 : -10),
-				boxHeight = target.innerHeight(),
-				targetHeight = $('> .pullToShow_content > div', target).innerHeight();
+				scrollTo = target.content.scrollTop()+p.speed*-1*(up? 10 : -10),
+				boxHeight = target.content.innerHeight(),
+				targetHeight = $('> div', target.content).innerHeight();
 				targetHeight = targetHeight < boxHeight? boxHeight : targetHeight;
 				var
-				snapped = $content.hasClass('scroll_top')? 1 : $content.hasClass('scroll_bottom')? -1 : 0,
+				snapped = target.content.hasClass('s2a_top')? 1 : target.content.hasClass('s2a_bottom')? -1 : 0,
 				sbhHeight = ~~(boxHeight/targetHeight*boxHeight);
 
 				// dont scroll further if snapped
@@ -203,17 +205,17 @@
 
 				// direction change -> release
 				if (snapped > 0 && !up) {
-					$content.removeClass('scroll_top');
-					$viewTop.removeClass('scroll_top');
-					$scrollBarHandler.height(sbhHeight);
+					target.content.removeClass('s2a_top');
+					target.viewTop.removeClass('s2a_top');
+					target.scrollBarHandler.height(sbhHeight);
 					p.f.locked = true;
 					window.setTimeout(function() { p.f.locked = false; }, 400); // wait for animation
 					return;
 				}
 				if (snapped < 0 && up) {
-					$content.removeClass('scroll_bottom');
-					$viewBottom.removeClass('scroll_bottom');
-					$scrollBarHandler.height(sbhHeight);
+					target.content.removeClass('s2a_bottom');
+					target.viewBottom.removeClass('s2a_bottom');
+					target.scrollBarHandler.height(sbhHeight);
 					p.f.locked = true;
 					window.setTimeout(function() { p.f.locked = false; }, 400); // wait for animation
 					return;
@@ -225,35 +227,35 @@
 				// reached top limit
 				if (scrollTo < 0) {
 
-					$content.addClass('scroll_top');
-					$viewTop.addClass('scroll_top');
-					$scrollBarHandler.height(sbhHeight/2);
+					target.content.addClass('s2a_top');
+					target.viewTop.addClass('s2a_top');
+					target.scrollBarHandler.height(sbhHeight/2);
 
 					if (p.f.disableSnapping) {
 						window.clearTimeout(animationTimeout);
 						animationTimeout = window.setTimeout(function() {
 							window.clearTimeout(animationTimeout);
 							animationTimeout = null;
-							$content.removeClass('scroll_top');
-							$viewTop.removeClass('scroll_top');
-							$scrollBarHandler.height(sbhHeight);
-							$('.pullToShow_scroll').removeClass("scroll_top");
+							target.content.removeClass('s2a_top');
+							target.viewTop.removeClass('s2a_top');
+							target.scrollBarHandler.height(sbhHeight);
+							target.scrollBar.removeClass("s2a_top");
 						}, 150);
 					}
 
 				// reached bottom limit
 				} else if (scrollTo > targetHeight-boxHeight) {
 
-					$content.addClass('scroll_bottom');
-					$viewBottom.addClass('scroll_bottom');
-					$scrollBarHandler.css("top", "auto");
-					$scrollBarHandler.css("bottom", 0);
-					$scrollBarHandler.height(sbhHeight/2);
+					target.content.addClass('s2a_bottom');
+					target.viewBottom.addClass('s2a_bottom');
+					target.scrollBarHandler.css("top", "auto");
+					target.scrollBarHandler.css("bottom", 0);
+					target.scrollBarHandler.height(sbhHeight/2);
 
 					$.each(bottomScrollInterval, function(k,v) { window.clearInterval(v); });
 					bottomScrollInterval = [];
 					bottomScrollInterval.push(window.setInterval(function() {
-						$content.scrollTop(boxHeight+targetHeight);
+						target.content.scrollTop(boxHeight+targetHeight);
 					}, 10));
 					window.setTimeout(function() {
 						$.each(bottomScrollInterval, function(k,v) { window.clearInterval(v); });
@@ -264,9 +266,9 @@
 						animationTimeout = window.setTimeout(function() {
 							window.clearTimeout(animationTimeout);
 							animationTimeout = null;
-							$content.removeClass('scroll_bottom');
-							$viewBottom.removeClass('scroll_bottom');
-							$scrollBarHandler.height(sbhHeight);
+							target.content.removeClass('s2a_bottom');
+							target.viewBottom.removeClass('s2a_bottom');
+							target.scrollBarHandler.height(sbhHeight);
 						}, 150);
 					}
 				}
