@@ -119,7 +119,7 @@
 
 
 			addScrollbar: function(elem) {
-				elem.scrollBar = $("<div class='s2a_scroll hidden'></div>");
+				elem.scrollBar = $("<div class='s2a_scroll'></div>");
 				elem.scrollBarHandler = $("<div class='s2a_handler' ></div>");
 
 				var
@@ -128,21 +128,11 @@
 
 				_.bindScrollbarHandler(elem.scrollBarHandler);
 
-				elem.scrollBar.hover(function() {
-					$(this).addClass("hover");
-				}, function() {
-					if (!_.f.scrollActive) {
-						$(this).removeClass("hover");
-					}
-				});
-
 				elem.parent.hover(function() {
 					_.f.mouseEntered = true;
-					elem.scrollBar.removeClass("hidden");
 				}, function() {
 					_.f.mouseEntered = false;
 					if (!_.f.scrollActive) {
-						elem.scrollBar.addClass("hidden");
 					}
 				});
 
@@ -163,15 +153,16 @@
 						clickPos = e.pageY;
 						_.f.scrollActive = true;
 						if (lastTarget !== null) {
+							lastTarget.parent.addClass("s2a_scrollActive");
 							posTop = ~~lastTarget.content.attr("data-s2a-pos");
 						}
 					});
 					$('body').mouseup(function() {
 						_.f.scrollActive = false;
 						if (lastTarget !== null) {
+							lastTarget.parent.removeClass("s2a_scrollActive");
 							lastTarget.scrollBar.removeClass("hover");
 							if (!_.f.mouseEntered) {
-								lastTarget.scrollBar.addClass("hidden");
 							}
 						}
 					});

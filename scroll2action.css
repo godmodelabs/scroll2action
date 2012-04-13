@@ -25,7 +25,7 @@
 .s2a_scroll {
 	position: absolute;
 	top: 0px;
-	right: 0px;
+	right: -3px;
 	width: 4px;
 	background: #eee;
 	margin: 0px;
@@ -41,12 +41,14 @@
 		 -o-transition: right 0.15s ease;
 			transition: right 0.15s ease;
 }
-.s2a_scroll.hover {
+.s2a_scroll:hover,
+.s2a_box.s2a_scrollActive .s2a_scroll{
 	opacity: 1;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
 }
-.s2a_scroll.hidden {
-	right: -3px;
+.s2a_box:hover .s2a_scroll,
+.s2a_box.s2a_scrollActive .s2a_scroll {
+	right: 0px;
 }
 .s2a_handler {
 	position: absolute;
