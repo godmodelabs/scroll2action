@@ -46,8 +46,8 @@
 	opacity: 1;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
 }
-.s2a_box:hover .s2a_scroll,
-.s2a_box.s2a_scrollActive .s2a_scroll {
+.s2a_box:hover > .s2a_scroll,
+.s2a_box.s2a_scrollActive > .s2a_scroll {
 	right: 0px;
 }
 .s2a_handler {

@@ -11,8 +11,7 @@
 			f: {
 				handlerIsSet: false,
 				locked: false,
-				scrollActive: false,
-				mouseEntered: false
+				scrollActive: false
 			},
 
 			config: {
@@ -44,6 +43,11 @@
 					this.viewBottom.width(width);
 					this.viewTop.width(width);
 				};
+				this.addScrollbar = function() {
+					this.scrollBar = $("<div class='s2a_scroll'></div>");
+					this.scrollBarHandler = $("<div class='s2a_handler' ></div>");
+					this.parent.append(this.scrollBar.append(this.scrollBarHandler));
+				};
 
 				this.parent.addClass("s2a_box");
 				this.content.append(this.wrapper).appendTo(this.parent);
@@ -67,6 +71,8 @@
 					id: id,
 					parent: elem
 				});
+
+				_.elements[id].addScrollbar();
 
 				_.addScrollbar(_.elements[id]);
 				_.addViews(_.elements[id]);
@@ -119,27 +125,14 @@
 
 
 			addScrollbar: function(elem) {
-				elem.scrollBar = $("<div class='s2a_scroll'></div>");
-				elem.scrollBarHandler = $("<div class='s2a_handler' ></div>");
-
 				var
 				boxHeight = elem.parent.innerHeight(),
 				targetHeight = elem.content.innerHeight();
 
 				_.bindScrollbarHandler(elem.scrollBarHandler);
 
-				elem.parent.hover(function() {
-					_.f.mouseEntered = true;
-				}, function() {
-					_.f.mouseEntered = false;
-					if (!_.f.scrollActive) {
-					}
-				});
-
 				elem.scrollBar.height(boxHeight);
 				elem.scrollBarHandler.height(~~(boxHeight/targetHeight*boxHeight));
-
-				elem.parent.append(elem.scrollBar.append(elem.scrollBarHandler));
 			},
 			bindScrollbarHandler: (function() {
 
@@ -162,8 +155,6 @@
 						if (lastTarget !== null) {
 							lastTarget.parent.removeClass("s2a_scrollActive");
 							lastTarget.scrollBar.removeClass("hover");
-							if (!_.f.mouseEntered) {
-							}
 						}
 					});
 
